@@ -72,3 +72,6 @@ client/main
 *.pb.h
 *.pb.cc
 client/cache
+
+dist
+bin

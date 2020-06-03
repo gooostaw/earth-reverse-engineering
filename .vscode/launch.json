@@ -1,0 +1,32 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "server",
+      "type": "node",
+      "request": "attach",
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ],
+      "port": 1337,
+      "protocol": "inspector",
+      "restart": true,
+      "timeout": 30000,
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "client",
+      "url": "http://localhost:11111",
+      "webRoot": "${workspaceRoot}/src-client",
+      "sourceMaps": true
+    }
+  ]
+}

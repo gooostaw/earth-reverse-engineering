@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist",
+        "sourceMap": true,
+        "module": "esnext",
+        "target": "esnext",
+        "allowJs": true,
+        "skipLibCheck": true,
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+    },
+    "include": [
+        "src-server",
+        "src-client"
+    ]
+}
