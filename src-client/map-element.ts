@@ -10,13 +10,11 @@ export class MapElement extends MobxLitElement {
 
     constructor() {
         super()
-
-        when(() => store.googleMapsReady, () => this.initMap())
     }
 
     firstUpdated() {
         this.mapDiv = this.shadowRoot.getElementById('map') as HTMLDivElement
-        this.initMap()
+        when(() => store.googleMapsReady, () => this.initMap())
     }
 
     initMap() {

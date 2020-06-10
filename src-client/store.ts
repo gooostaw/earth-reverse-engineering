@@ -1,5 +1,6 @@
 import { observable, computed, action, autorun } from 'mobx'
 import * as _ from 'lodash'
+import { AppApi } from './app-api'
 
 type Bounds = {
     north: number,
@@ -9,6 +10,8 @@ type Bounds = {
 }
 
 class Store {
+    api = new AppApi()
+
     /** wiadomość do wyświetlenia */
     @observable
     message = {}
@@ -37,6 +40,8 @@ class Store {
 }
 
 export const store = new Store()
+
+    ; (async () => console.log(await store.api.test('asdasd')))()
 
 // window.addEventListener('resize', () => {
 //     store.windowWidth = window.innerWidth;

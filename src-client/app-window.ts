@@ -44,5 +44,3 @@ export class AppWindow extends MobxLitElement {
             <div id='panel'>${JSON.stringify(store.mapBoundsArray)}</div>`
     }
 }
-
-//<script async defer src="https://maps.googleapis.com/maps/api/js?callback=initMap">
