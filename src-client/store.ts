@@ -1,13 +1,7 @@
 import { observable, computed, action, autorun } from 'mobx'
 import * as _ from 'lodash'
 import { AppApi } from './app-api'
-
-type Bounds = {
-    north: number,
-    east: number,
-    south: number,
-    west: number
-}
+import { Box2, Vector2 } from 'three'
 
 class Store {
     api = new AppApi()
@@ -16,26 +10,39 @@ class Store {
     @observable
     message = {}
 
-    /** wiadomość do wyświetlenia */
-    @observable
-    googleMapsReady = false
+    // @observable
+    // googleMapsReady = false
 
     @observable
-    mapBounds: google.maps.LatLngBounds
+    googleMapBounds: google.maps.LatLngBounds
 
-    @computed get mapBoundsArray(): Bounds {
-        if (!this.mapBounds)
-            return { north: 0, east: 0, west: 0, south: 0 }
+    @observable
+    googleMapCenter: google.maps.LatLng
 
-        const northEast = this.mapBounds.getNorthEast()
-        const southWest = this.mapBounds.getSouthWest()
+    @observable
+    googleMapZoom: number
 
-        return {
-            north: northEast.lat(),
-            east: northEast.lng(),
-            west: southWest.lat(),
-            south: southWest.lng()
-        }
+    @computed
+    get mapBox(): Box2 {
+        if (!this.googleMapBounds)
+            return new Box2(new Vector2(), new Vector2())
+
+        const northEast = this.googleMapBounds.getNorthEast()
+        const southWest = this.googleMapBounds.getSouthWest()
+
+        return new Box2(new Vector2(southWest.lng(), southWest.lat()), new Vector2(northEast.lng(), northEast.lat()))
+    }
+
+    @computed
+    get mapCenter(): Vector2 {
+        if (!this.googleMapCenter)
+            return new Vector2(0, 0)
+        return new Vector2(this.googleMapCenter.lng(), this.googleMapCenter.lat())
+    }
+
+    @computed
+    get mapZoom(): number {
+        return this.googleMapZoom || 0
     }
 }
 

@@ -1,7 +1,9 @@
+import { Loader, LoaderOptions } from 'google-maps'
 import { LitElement, html, css, customElement } from 'lit-element'
 import { store } from './store'
-import { when } from 'mobx'
+import { when, autorun } from 'mobx'
 import { MobxLitElement } from '@adobe/lit-mobx'
+import { Chunk } from '../utils/chunk'
 
 @customElement('map-element')
 export class MapElement extends MobxLitElement {
@@ -14,25 +16,42 @@ export class MapElement extends MobxLitElement {
 
     firstUpdated() {
         this.mapDiv = this.shadowRoot.getElementById('map') as HTMLDivElement
-        when(() => store.googleMapsReady, () => this.initMap())
+        this.initMap()
     }
 
-    initMap() {
+
+
+    async initMap() {
         if (this.map || !this.mapDiv)
             return
 
-        this.map = new window.google.maps.Map(this.mapDiv, {
+        const loader = new Loader()
+        const google = await loader.load()
+
+        this.map = new google.maps.Map(this.mapDiv, {
             center: { lat: -34.397, lng: 150.644 },
             zoom: 8,
-            mapTypeId: 'satellite',
+            mapTypeId: 'hybrid',
         })
 
-        var rectangle = new google.maps.Rectangle({
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            fillColor: '#FF0000',
-            fillOpacity: 0.35,
+        const updateMapParams = () => {
+            store.googleMapBounds = this.map.getBounds()
+            store.googleMapCenter = this.map.getCenter()
+            store.googleMapZoom = this.map.getZoom()
+        }
+
+        updateMapParams()
+
+        this.map.addListener('bounds_changed', updateMapParams)
+        this.map.addListener('center_changed', updateMapParams)
+        this.map.addListener('zoom_changed', updateMapParams)
+
+        const rectangle = new google.maps.Rectangle({
+            strokeColor: '#FFFF00',
+            strokeOpacity: 1,
+            strokeWeight: 1,
+            fillColor: '#FFFFFF',
+            fillOpacity: 0.05,
             map: this.map,
             bounds: {
                 north: 33.685,
@@ -42,10 +61,10 @@ export class MapElement extends MobxLitElement {
             }
         })
 
-        store.mapBounds = this.map.getBounds()
-
-        this.map.addListener('bounds_changed', () => {
-            store.mapBounds = this.map.getBounds()
+        autorun(() => {
+            const chunk = Chunk.fromCoords(store.mapCenter.y, store.mapCenter.x, Math.max(store.mapZoom, 1))
+            rectangle.setBounds(chunk.getLatLngBounds())
+            // rectangle.setBounds({ north: store.mapCenter.y, east: store.mapCenter.x + 10, south: store.mapCenter.y - 10, west: store.mapCenter.x })
         })
     }
 

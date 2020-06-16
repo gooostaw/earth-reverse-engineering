@@ -1,19 +1,6 @@
 import { store } from './store'
 
-async function loadGoogleMapsScript(src = 'https://maps.googleapis.com/maps/api/js?callback=initMap') {
-    return new Promise(resolve => {
-        (window as any).initMap = () => store.googleMapsReady = true
-
-        const googleMapsScriptElement = document.createElement('script')
-        googleMapsScriptElement.onload = resolve
-        googleMapsScriptElement.setAttribute('src', src)
-        document.head.appendChild(googleMapsScriptElement);
-    })
-}
-
 export async function startApp() {
-    await loadGoogleMapsScript()
-
     //jeśli jest taka potrzeba pobiera i odpala WebComponents polyfill
     if (!('registerElement' in document))
         await import('@webcomponents/webcomponentsjs')
@@ -22,3 +9,15 @@ export async function startApp() {
 }
 
 startApp()
+
+let titleState = 0
+setInterval(() => {
+    titleState++
+    const rotation = titleState % 3
+    if (rotation === 0)
+        return document.title = '🌎'
+    else if (rotation === 1)
+        return document.title = '🌍'
+    else if (rotation === 2)
+        return document.title = '🌏'
+}, 1000)

@@ -41,6 +41,10 @@ export class AppWindow extends MobxLitElement {
     render() {
         return html`
             <map-element></map-element>
-            <div id='panel'>${JSON.stringify(store.mapBoundsArray)}</div>`
+            <div id='panel'>
+                <div>${JSON.stringify(store.mapBox)}</div>
+                <div>${JSON.stringify(store.mapCenter)}</div>
+                <div>Zoom: ${store.mapZoom}</div>
+            </div>`
     }
 }

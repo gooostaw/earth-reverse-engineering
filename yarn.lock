@@ -146,6 +146,11 @@
     "@types/minimatch" "*"
     "@types/node" "*"
 
+"@types/googlemaps@^3.39.1":
+  version "3.39.7"
+  resolved "https://registry.yarnpkg.com/@types/googlemaps/-/googlemaps-3.39.7.tgz#70c1af22839976cfd462858c882b54f3006f0b08"
+  integrity sha512-U8ZjnjfGiZXzun8jIDOZ/5Gt5Ky07B9pBhFbgzten1S364bnuueFsCt5e5V7Wn55o26NkLWgc6becL+j401bRw==
+
 "@types/googlemaps@^3.39.6":
   version "3.39.6"
   resolved "https://registry.yarnpkg.com/@types/googlemaps/-/googlemaps-3.39.6.tgz#ca76df823fb4a8bd78bf47bd215fc70417a9ae51"
@@ -2522,6 +2527,13 @@ globby@^6.1.0:
     object-assign "^4.0.1"
     pify "^2.0.0"
     pinkie-promise "^2.0.0"
+
+google-maps@^4.2.3:
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/google-maps/-/google-maps-4.2.3.tgz#0cf7383154b80db9bbddf2a96d298adfea09e765"
+  integrity sha512-RGKlYq57/3tKq+o03+25CAOHWq6lAOPPy4knIeVfFw3xmZtwaJsMPuQnQNnITf/BRIC0EBqq0YbbCFW+6q5P0Q==
+  dependencies:
+    "@types/googlemaps" "^3.39.1"
 
 got@^6.7.1:
   version "6.7.1"
@@ -5398,6 +5410,11 @@ thenify-all@^1.0.0:
   integrity sha1-5p44obq+lpsBCCB5eLn2K4hgSDk=
   dependencies:
     any-promise "^1.0.0"
+
+three@^0.117.1:
+  version "0.117.1"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.117.1.tgz#a49bcb1a6ddea2f250003e42585dc3e78e92b9d3"
+  integrity sha512-t4zeJhlNzUIj9+ub0l6nICVimSuRTZJOqvk3Rmlu+YGdTOJ49Wna8p7aumpkXJakJfITiybfpYE1XN1o1Z34UQ==
 
 throttleit@^1.0.0:
   version "1.0.0"
