@@ -16,6 +16,10 @@ module.exports = (env, { mode = 'production' }) => {
                     test: /\.ts$/,
                     loader: 'ts-loader',
                     exclude: /node_modules/,
+                },
+                {
+                    test: /\.proto$/i,
+                    use: 'raw-loader',
                 }
             ]
         },
@@ -33,6 +37,10 @@ module.exports = (env, { mode = 'production' }) => {
             })
         ],
         devtool: 'inline-source-map',
+        // watchOptions: {
+        //     aggregateTimeout: 2000,
+        //     poll: 2000
+        // },
         output: {
             filename: mode === 'development' ? '[name].bundle.js' : '[name].[contenthash].bundle.js',
             chunkFilename: mode === 'development' ? '[name].chunk.js' : '[name].[contenthash].chunk.js',

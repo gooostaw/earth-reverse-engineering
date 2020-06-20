@@ -19,8 +19,6 @@ export class MapElement extends MobxLitElement {
         this.initMap()
     }
 
-
-
     async initMap() {
         if (this.map || !this.mapDiv)
             return
@@ -29,8 +27,8 @@ export class MapElement extends MobxLitElement {
         const google = await loader.load()
 
         this.map = new google.maps.Map(this.mapDiv, {
-            center: { lat: -34.397, lng: 150.644 },
-            zoom: 8,
+            center: { lat: 0, lng: 0 },
+            zoom: 2,
             mapTypeId: 'hybrid',
         })
 
@@ -45,6 +43,41 @@ export class MapElement extends MobxLitElement {
         this.map.addListener('bounds_changed', updateMapParams)
         this.map.addListener('center_changed', updateMapParams)
         this.map.addListener('zoom_changed', updateMapParams)
+
+        // const chunks = Chunk.generateChunks(5)
+
+        // for (const chunk of chunks) {
+        //     new google.maps.Rectangle({
+        //         strokeColor: '#FFFFFF',
+        //         strokeOpacity: 0.5,
+        //         strokeWeight: 0.5,
+        //         fillColor: chunk.color,
+        //         fillOpacity: 0.5,
+        //         map: this.map,
+        //         bounds: chunk.getLatLngBounds()
+        //     })
+
+        //     // console.log(`${JSON.stringify(chunk.getBox())}`)
+        //     // if (chunk.info !== undefined)
+        //     new google.maps.Marker({
+        //         position: chunk.getCenterLatLng(),
+        //         icon: null,
+        //         label: { text: chunk.id, fontWeight: 'bold', color: 'white' },
+        //         map: this.map
+        //     })
+        // }
+
+
+        // for (let i = 0; i < 7; i++) {
+        //     console.log(`>>>>> LEVEL: ${i} <<<<<`)
+        //     const rows = Chunk.getRows(i)
+        //     const unitSize = Chunk.getUnitSize(i)
+        //     console.log(`rows: ${rows}`)
+        //     console.log(`unitSize: ${unitSize}`)
+        //     for (let j = 0; j < rows; j++) {
+        //         console.log(`row: ${j}/${rows}, widthUnits: ${Chunk.getWidthUnits(i, j)}`)
+        //     }
+        // }
 
         const rectangle = new google.maps.Rectangle({
             strokeColor: '#FFFF00',
@@ -61,10 +94,30 @@ export class MapElement extends MobxLitElement {
             }
         })
 
-        autorun(() => {
+        const marker = new google.maps.Marker({
+            // position: chunk.getCenterLatLng(),
+            icon: null,
+            // label: { text: '', fontWeight: 'bold', color: 'white' },
+            map: this.map,
+        })
+
+        let currentChunkId = ''
+        autorun(async () => {
             const chunk = Chunk.fromCoords(store.mapCenter.y, store.mapCenter.x, Math.max(store.mapZoom, 1))
+            if (currentChunkId === chunk.id)
+                return
+            currentChunkId = chunk.id
+            // store.misc['test'] = chunk.getRowNumber()
             rectangle.setBounds(chunk.getLatLngBounds())
-            // rectangle.setBounds({ north: store.mapCenter.y, east: store.mapCenter.x + 10, south: store.mapCenter.y - 10, west: store.mapCenter.x })
+            marker.setPosition(chunk.getCenterLatLng())
+            marker.setLabel({ text: chunk.id, fontWeight: 'bold', color: 'white' })
+            console.log(`id: ${chunk.id}`)
+            await chunk.loadMesh()
+            console.log(chunk.mesh.data.kmlBoundingBox)
+            // if(chunk.mesh && chunk.me)
+            // const mesh = await chunk.loadMesh()
+            // store.data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mesh))
+            // console.log(JSON.stringify(message))
         })
     }
 

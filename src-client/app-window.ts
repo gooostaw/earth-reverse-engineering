@@ -41,10 +41,12 @@ export class AppWindow extends MobxLitElement {
     render() {
         return html`
             <map-element></map-element>
-            <div id='panel'>
+            <div id="panel">
                 <div>${JSON.stringify(store.mapBox)}</div>
                 <div>${JSON.stringify(store.mapCenter)}</div>
                 <div>Zoom: ${store.mapZoom}</div>
+                <div>${JSON.stringify(store.misc)}</div>
+                <a href="data:${store.data}" download="data.json">download JSON</a>
             </div>`
     }
 }

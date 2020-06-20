@@ -5,6 +5,16 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "exporter",
+      "program": "${workspaceFolder}/exporter/dump_obj.js",
+      "args": ["02", "2"],
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "pwa-node"
+    },
+    {
       "name": "server",
       "type": "node",
       "request": "attach",

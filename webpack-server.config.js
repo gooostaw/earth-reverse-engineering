@@ -29,6 +29,10 @@ module.exports = (env, { mode = 'production' }) => {
     //     }))
 
     return {
+        node: {
+            __dirname: false,
+            __filename: false
+        },
         entry: './src-server/main.ts',
         target: 'node',
         mode,
@@ -46,10 +50,10 @@ module.exports = (env, { mode = 'production' }) => {
         },
         plugins,
         devtool: mode === 'development' ? 'inline-source-map' : false,
-        output: { path: path.resolve(__dirname, './dist'), },
-        node: {
-            __dirname: false,
-            __filename: false
-        }
+        // watchOptions: {
+        //     aggregateTimeout: 2000,
+        //     poll: 2000
+        // },
+        output: { path: path.resolve(__dirname, './dist'), }
     }
 }

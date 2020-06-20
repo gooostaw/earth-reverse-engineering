@@ -6,12 +6,15 @@ import { Box2, Vector2 } from 'three'
 class Store {
     api = new AppApi()
 
+    @observable
+    data = ''
+
     /** wiadomość do wyświetlenia */
     @observable
     message = {}
 
-    // @observable
-    // googleMapsReady = false
+    @observable
+    misc = {}
 
     @observable
     googleMapBounds: google.maps.LatLngBounds
@@ -48,7 +51,7 @@ class Store {
 
 export const store = new Store()
 
-    ; (async () => console.log(await store.api.test('asdasd')))()
+    // ; (async () => console.log(await store.api.test('asdasd')))()
 
 // window.addEventListener('resize', () => {
 //     store.windowWidth = window.innerWidth;
