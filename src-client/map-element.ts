@@ -3,7 +3,9 @@ import { LitElement, html, css, customElement } from 'lit-element'
 import { store } from './store'
 import { when, autorun } from 'mobx'
 import { MobxLitElement } from '@adobe/lit-mobx'
-import { Chunk } from '../utils/chunk'
+import { MapNode } from '../utils/map-node'
+import { Bulk } from '../utils/bulk'
+import { earth } from './main'
 
 @customElement('map-element')
 export class MapElement extends MobxLitElement {
@@ -103,17 +105,18 @@ export class MapElement extends MobxLitElement {
 
         let currentChunkId = ''
         autorun(async () => {
-            const chunk = Chunk.fromCoords(store.mapCenter.y, store.mapCenter.x, Math.max(store.mapZoom, 1))
-            if (currentChunkId === chunk.id)
+            const mapNode = MapNode.fromCoords(earth, store.mapCenter.y, store.mapCenter.x, Math.max(store.mapZoom, 1))
+            if (currentChunkId === mapNode.path)
                 return
-            currentChunkId = chunk.id
+            currentChunkId = mapNode.path
             // store.misc['test'] = chunk.getRowNumber()
-            rectangle.setBounds(chunk.getLatLngBounds())
-            marker.setPosition(chunk.getCenterLatLng())
-            marker.setLabel({ text: chunk.id, fontWeight: 'bold', color: 'white' })
-            console.log(`id: ${chunk.id}`)
-            await chunk.loadMesh()
-            console.log(chunk.mesh.data.kmlBoundingBox)
+            rectangle.setBounds(mapNode.getLatLngBounds())
+            marker.setPosition(mapNode.getCenterLatLng())
+            marker.setLabel({ text: mapNode.path, fontWeight: 'bold', color: 'white' })
+            console.log(`id: ${mapNode.path}`)
+            await mapNode.load()
+            // await chunk.loadMesh()
+            // console.log(mapNode.mesh.data.kmlBoundingBox)
             // if(chunk.mesh && chunk.me)
             // const mesh = await chunk.loadMesh()
             // store.data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mesh))

@@ -1,35 +1,40 @@
 import { Box2, Vector2 } from 'three'
 import { google } from 'google-maps'
-import { Mesh } from './mesh'
+import { Planetoid } from './planetoid'
+import { MapNodeMesh } from './map-node-mesh'
+import { Bulk } from './bulk'
 
-export interface ChunkOptions {
+export interface MapNodeOptions {
     level?: number
     x?: number
     y?: number
-    id?: string
+    path?: string
     color?: string
     info?: string
 }
 
-export class Chunk {
+export class MapNode {
+    loaded = false
+    planetoid: Planetoid
     level: number
     x: number
     y: number
-    id: string
+    path: string
     color: string
     info?: string
-    mesh?: Mesh
+    mesh?: MapNodeMesh
 
-    constructor(options: ChunkOptions = {}) {
-        let { info, level = 2, x = 0, y = 0, id = '' } = options
+    constructor(planetoid: Planetoid, options: MapNodeOptions = {}) {
+        let { info, level = 2, x = 0, y = 0, path = '' } = options
 
         if (level < 2)
             throw new Error('minimal Chunk level is 2')
 
+        this.planetoid = planetoid
         this.level = level
         this.x = x
         this.y = y
-        this.id = Chunk.prepareId(id)
+        this.path = MapNode.preparePath(path)
         this.info = info
 
         this.color = options.color
@@ -42,13 +47,25 @@ export class Chunk {
         this.color = 'blue'//`rgb(${(this.box.min.x + 180) / 360 * 255}, ${(this.box.min.y + 90) / 180 * 255}, 0)`
     }
 
-    async loadMesh(force = false) {
-        if (!this.mesh || force) {
-            this.mesh = new Mesh(this.id)
-            await this.mesh.load()
-        }
-        return this.mesh
+    async load() {
+        const bulk = await Bulk.fromMapNode(this)
+        console.log(`node path: ${this.path}`)
+        console.log(JSON.stringify(bulk.data, null, 2))
+        // const headNodeKey = bulk.data.headNodeKey
+        // console.log(`headNodeKey: ${JSON.stringify(headNodeKey, null, 2)}`)
+        this.mesh = new MapNodeMesh(this)
+        await this.mesh.load(869)
+        this.loaded = true
+        console.log(JSON.stringify(this.mesh.data, null, 2))
     }
+
+    // async loadMesh(force = false) {
+    //     if (!this.mesh || force) {
+    //         this.mesh = new MapNodeMesh(this.path)
+    //         await this.mesh.load()
+    //     }
+    //     return this.mesh
+    // }
 
     getBox() {
         const unitSize = this.getUnitSize()
@@ -63,7 +80,7 @@ export class Chunk {
     static getWidthUnits(level: number, y: number) {
         if (level < 2)
             return 1
-        const rows = Chunk.getRows(level)
+        const rows = MapNode.getRows(level)
         const rowsHalf = rows / 2
         const rowFromCenter = y < rowsHalf ? y : -y + rows - 1
         return 1 << (31 - Math.clz32(rowsHalf / (rowFromCenter + 1)))
@@ -71,7 +88,7 @@ export class Chunk {
 
     /** Zwraca ilość jednostek jakie musie mieć chunk na szerokość */
     getWidthUnits() {
-        return Chunk.getWidthUnits(this.level, this.y)
+        return MapNode.getWidthUnits(this.level, this.y)
     }
 
     /** Zwraca ilość rzędów dla danego poziomu */
@@ -81,7 +98,7 @@ export class Chunk {
 
     /** Zwraca ilość rzędów dla poziomu fragmentu*/
     getRows() {
-        return Chunk.getRows(this.level)
+        return MapNode.getRows(this.level)
     }
 
     /** Zwraca rozmiar jednostki dla danego poziomu */
@@ -91,15 +108,15 @@ export class Chunk {
 
     /** Zwraca rozmiar jednostki dla poziomu fragmentu */
     getUnitSize() {
-        return Chunk.getUnitSize(this.level)
+        return MapNode.getUnitSize(this.level)
     }
 
     clone() {
-        return new Chunk({
+        return new MapNode(this.planetoid, {
             level: this.level,
             x: this.x,
             y: this.y,
-            id: this.id,
+            path: this.path,
             color: this.color,
             info: Object.assign({}, this.info)
         })
@@ -121,16 +138,16 @@ export class Chunk {
         return new google.maps.LatLngBounds({ lng: box.min.x, lat: box.min.y }, { lng: box.max.x, lat: box.max.y })
     }
 
-    getSubChunks(): Chunk[] {
+    getSubChunks(): MapNode[] {
         const subChunks = []
         const widthUnits = this.getWidthUnits()
         // const subUnitSize = Chunk.getUnitSize(this.level + 1)
         // const widthUnitSize = Chunk.getWidthUnits(this.level + 1)
 
-        const bottomLeftChunk = new Chunk({
+        const bottomLeftChunk = new MapNode(this.planetoid, {
             level: this.level + 1,
             y: this.y * 2,
-            id: this.id + '0'
+            path: this.path + '0'
         })
         subChunks.push(bottomLeftChunk)
 
@@ -139,19 +156,19 @@ export class Chunk {
         }
         else {
             bottomLeftChunk.x = this.x * 2
-            const bottomRightChunk = new Chunk({
+            const bottomRightChunk = new MapNode(this.planetoid, {
                 level: this.level + 1,
                 x: this.x * 2 + 1,
                 y: this.y * 2,
-                id: this.id + '1'
+                path: this.path + '1'
             })
             subChunks.push(bottomRightChunk)
         }
 
-        const topLeftChunk = new Chunk({
+        const topLeftChunk = new MapNode(this.planetoid, {
             level: this.level + 1,
             y: this.y * 2 + 1,
-            id: this.id + '2'
+            path: this.path + '2'
         })
         subChunks.push(topLeftChunk)
 
@@ -160,11 +177,11 @@ export class Chunk {
         }
         else {
             topLeftChunk.x = this.x * 2
-            const topRightChunk = new Chunk({
+            const topRightChunk = new MapNode(this.planetoid, {
                 level: this.level + 1,
                 x: this.x * 2 + 1,
                 y: this.y * 2 + 1,
-                id: this.id + '3'
+                path: this.path + '3'
             })
             subChunks.push(topRightChunk)
         }
@@ -172,11 +189,11 @@ export class Chunk {
         return subChunks
     }
 
-    static fromCoords(lat: number, long: number, level: number) {
+    static fromCoords(planetoid: Planetoid, lat: number, long: number, level: number) {
         const coordPoint = new Vector2(long, lat)
-        let currentsChunks = Chunk.generateBasicChunks()
+        let currentsChunks = MapNode.generateBasicChunks(planetoid)
 
-        function findChunkWithPoint(chunks: Chunk[], point: Vector2 = coordPoint) {
+        function findChunkWithPoint(chunks: MapNode[], point: Vector2 = coordPoint) {
             for (const chunk of chunks)
                 if (chunk.getBox().containsPoint(point))
                     return chunk
@@ -228,8 +245,8 @@ export class Chunk {
         // return new Chunk({ box })
     }
 
-    static prepareId(id: string) {
-        return id.split('').map((digit, i) => {
+    static preparePath(path: string) {
+        return path.split('').map((digit, i) => {
             const int = parseInt(digit)
             if (i > 1 && int < 4 && i % 2 === 0)
                 return (parseInt(digit) + 4).toString()
@@ -237,27 +254,27 @@ export class Chunk {
         }).join('')
     }
 
-    static generateBasicChunks(): Chunk[] {
+    static generateBasicChunks(planetoid: Planetoid): MapNode[] {
         return [
-            new Chunk({ level: 2, x: 0, y: 0, id: '02' }),
-            new Chunk({ level: 2, x: 1, y: 0, id: '03' }),
-            new Chunk({ level: 2, x: 2, y: 0, id: '12' }),
-            new Chunk({ level: 2, x: 3, y: 0, id: '13' }),
-            new Chunk({ level: 2, x: 0, y: 1, id: '20' }),
-            new Chunk({ level: 2, x: 1, y: 1, id: '21' }),
-            new Chunk({ level: 2, x: 2, y: 1, id: '30' }),
-            new Chunk({ level: 2, x: 3, y: 1, id: '31' }),
+            new MapNode(planetoid, { level: 2, x: 0, y: 0, path: '02' }),
+            new MapNode(planetoid, { level: 2, x: 1, y: 0, path: '03' }),
+            new MapNode(planetoid, { level: 2, x: 2, y: 0, path: '12' }),
+            new MapNode(planetoid, { level: 2, x: 3, y: 0, path: '13' }),
+            new MapNode(planetoid, { level: 2, x: 0, y: 1, path: '20' }),
+            new MapNode(planetoid, { level: 2, x: 1, y: 1, path: '21' }),
+            new MapNode(planetoid, { level: 2, x: 2, y: 1, path: '30' }),
+            new MapNode(planetoid, { level: 2, x: 3, y: 1, path: '31' }),
         ]
     }
 
-    static generateChunks(level: number = 3): Chunk[] {
+    static generateChunks(planetoid: Planetoid, level: number = 3): MapNode[] {
         if (level < 2)
             throw new Error('minimal Chunk level is 2')
 
-        let chunks = Chunk.generateBasicChunks()
+        let chunks = MapNode.generateBasicChunks(planetoid)
 
         for (let currentLevel = 2; currentLevel < level; currentLevel++) {
-            const newChunks: Chunk[] = []
+            const newChunks: MapNode[] = []
             for (let oldChunk of chunks)
                 newChunks.push(...oldChunk.getSubChunks())
             chunks = newChunks

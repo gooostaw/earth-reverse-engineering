@@ -1,10 +1,12 @@
-import { store } from './store'
+import { Planetoid } from '../utils/planetoid'
+export const earth = new Planetoid()
 
 export async function startApp() {
     //jeśli jest taka potrzeba pobiera i odpala WebComponents polyfill
     if (!('registerElement' in document))
         await import('@webcomponents/webcomponentsjs')
 
+    await earth.load()
     import(/* webpackMode: "eager" */ './app-window')
 }
 
