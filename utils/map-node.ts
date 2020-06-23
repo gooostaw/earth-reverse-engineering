@@ -49,14 +49,32 @@ export class MapNode {
 
     async load() {
         const bulk = await Bulk.fromMapNode(this)
+        const possibleEpochs = bulk.getPossibleEpochs()
         console.log(`node path: ${this.path}`)
-        console.log(JSON.stringify(bulk.data, null, 2))
+        console.log(`bulk length: ${bulk.data.nodeMetadata.length}`)
+        // console.log(`possibleEpochs: ${JSON.stringify(possibleEpochs, null, 2)}`)
+        // console.log(JSON.stringify(bulk.data, null, 2))
+        const arr = []
+        for (const meta of bulk.data.nodeMetadata) {
+            arr.push({
+                pathAndFlags: meta.pathAndFlags,
+                path_4: meta.pathAndFlags >> 4,
+                path_5: meta.pathAndFlags >> 5,
+                path_6: meta.pathAndFlags >> 6,
+                path_7: meta.pathAndFlags >> 7,
+                path_8: meta.pathAndFlags >> 8,
+                path_9: meta.pathAndFlags >> 9
+            })
+        }
+
+        console.log(JSON.stringify(arr, null, 2))
+
         // const headNodeKey = bulk.data.headNodeKey
         // console.log(`headNodeKey: ${JSON.stringify(headNodeKey, null, 2)}`)
         this.mesh = new MapNodeMesh(this)
-        await this.mesh.load(869)
-        this.loaded = true
-        console.log(JSON.stringify(this.mesh.data, null, 2))
+        await this.mesh.load(possibleEpochs)
+        // this.loaded = true
+        console.log(JSON.stringify(this.mesh.data.kmlBoundingBox, null, 2))
     }
 
     // async loadMesh(force = false) {

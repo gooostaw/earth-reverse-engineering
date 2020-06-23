@@ -21,11 +21,20 @@ export class MapNodeMesh {
         //this.url = `${}NodeData/pb=!1m2!1s${chunkId}!2u869!2e1!3u844!4b0`
     }
 
-    async load(epoch) {
+    async load(possibleEpochs: number[]) {
+        if (!possibleEpochs.length)
+            throw new Error(`MapNodeMesh load error: no possible epochs`)
         const { planetoid, path } = this.mapNode
-        const response = await fetch(`${planetoid.url}NodeData/pb=!1m2!1s${path}!2u${epoch}!2e1!3u844!4b0`)
+        let response: Response
+        for (const epoch of possibleEpochs) {
+            response = await fetch(`${planetoid.url}NodeData/pb=!1m2!1s${path}!2u${epoch}!2e1!3u844!4b0`)
+            if (response.ok)
+                break
+        }
+
         if (!response.ok)
             throw new Error(`MapNodeMesh load error: ${response.status}`)
+
         const buffer = new Uint8Array(await response.arrayBuffer())
         this.data = nodeDataType.decode(buffer)
         this.loaded = true

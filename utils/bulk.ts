@@ -46,6 +46,21 @@ export class Bulk {
         return nodePath.substring(0, Math.floor(nodePath.length / 4) * 4)
     }
 
+    getPossibleEpochs(): number[] {
+        const epochs = []
+
+        if (this.data && this.data.nodeMetadata) {
+            const nodeMetadata = this.data.nodeMetadata
+            for (const metaData of nodeMetadata) {
+                const epoch = metaData.epoch
+                if (epoch && !epochs.includes(epoch))
+                    epochs.push(epoch)
+            }
+        }
+
+        return epochs
+    }
+
     static async fromMapNode(mapNode: MapNode) {
         const bulk = new Bulk(mapNode.planetoid, mapNode.path)
         await bulk.load()

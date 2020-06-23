@@ -7,7 +7,8 @@
     {
       "name": "exporter",
       "program": "${workspaceFolder}/exporter/dump_obj.js",
-      "args": ["304272626061406361436", "21"],
+      "args": ["03", "2"],
+      // "args": ["304272626061406361436", "21"],
       "request": "launch",
       "skipFiles": [
         "<node_internals>/**"

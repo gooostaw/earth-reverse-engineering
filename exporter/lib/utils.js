@@ -86,7 +86,8 @@ module.exports = function init(config) {
 		},
 
 		async getBulk(path, epoch) {
-			return await decode(CMD_BULK, `BulkMetadata/pb=!1m2!1s${path}!2u${epoch}`);
+			// https://kh.google.com/rt/earth/BulkMetadata/pb=!1m2!1s!2u870
+			return await decode(CMD_BULK, `BulkMetadata/pb=!1m2!1s!2u870`);
 		},
 
 	};
