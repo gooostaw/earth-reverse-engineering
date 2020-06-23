@@ -7,6 +7,9 @@ class Store {
     api = new AppApi()
 
     @observable
+    vertices: number[] = []
+
+    @observable
     data = ''
 
     /** wiadomość do wyświetlenia */

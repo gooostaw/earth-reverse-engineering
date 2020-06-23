@@ -12,10 +12,6 @@ export class MapElement extends MobxLitElement {
     mapDiv: HTMLDivElement
     map: google.maps.Map<HTMLDivElement>
 
-    constructor() {
-        super()
-    }
-
     firstUpdated() {
         this.mapDiv = this.shadowRoot.getElementById('map') as HTMLDivElement
         this.initMap()
@@ -32,6 +28,7 @@ export class MapElement extends MobxLitElement {
             center: { lat: 0, lng: 0 },
             zoom: 2,
             mapTypeId: 'hybrid',
+            tilt: 0
         })
 
         const updateMapParams = () => {
@@ -113,9 +110,12 @@ export class MapElement extends MobxLitElement {
             rectangle.setBounds(mapNode.getLatLngBounds())
             marker.setPosition(mapNode.getCenterLatLng())
             marker.setLabel({ text: mapNode.path, fontWeight: 'bold', color: 'white' })
-            console.log(`id: ${mapNode.path}`)
-            await mapNode.load()
-            // await chunk.loadMesh()
+            // console.log(`id: ${mapNode.path}`)
+            const model = await mapNode.load3dModel()
+            const firstMesh = model.data.meshes[0]
+            if (firstMesh) {
+                store.vertices = firstMesh.vertices
+            }
             // console.log(mapNode.mesh.data.kmlBoundingBox)
             // if(chunk.mesh && chunk.me)
             // const mesh = await chunk.loadMesh()

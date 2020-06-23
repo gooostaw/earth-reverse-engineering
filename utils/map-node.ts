@@ -1,8 +1,7 @@
 import { Box2, Vector2 } from 'three'
 import { google } from 'google-maps'
-import { Planetoid } from './planetoid'
-import { MapNodeMesh } from './map-node-mesh'
-import { Bulk } from './bulk'
+import { Planetoid, NodeMeta } from './planetoid'
+import { MapNode3dModel } from './map-node-3d-model'
 
 export interface MapNodeOptions {
     level?: number
@@ -22,7 +21,8 @@ export class MapNode {
     path: string
     color: string
     info?: string
-    mesh?: MapNodeMesh
+    mesh?: MapNode3dModel
+    nodeMeta: NodeMeta
 
     constructor(planetoid: Planetoid, options: MapNodeOptions = {}) {
         let { info, level = 2, x = 0, y = 0, path = '' } = options
@@ -47,43 +47,19 @@ export class MapNode {
         this.color = 'blue'//`rgb(${(this.box.min.x + 180) / 360 * 255}, ${(this.box.min.y + 90) / 180 * 255}, 0)`
     }
 
-    async load() {
-        const bulk = await Bulk.fromMapNode(this)
-        const possibleEpochs = bulk.getPossibleEpochs()
-        console.log(`node path: ${this.path}`)
-        console.log(`bulk length: ${bulk.data.nodeMetadata.length}`)
-        // console.log(`possibleEpochs: ${JSON.stringify(possibleEpochs, null, 2)}`)
-        // console.log(JSON.stringify(bulk.data, null, 2))
-        const arr = []
-        for (const meta of bulk.data.nodeMetadata) {
-            arr.push({
-                pathAndFlags: meta.pathAndFlags,
-                path_4: meta.pathAndFlags >> 4,
-                path_5: meta.pathAndFlags >> 5,
-                path_6: meta.pathAndFlags >> 6,
-                path_7: meta.pathAndFlags >> 7,
-                path_8: meta.pathAndFlags >> 8,
-                path_9: meta.pathAndFlags >> 9
-            })
-        }
-
-        console.log(JSON.stringify(arr, null, 2))
-
-        // const headNodeKey = bulk.data.headNodeKey
-        // console.log(`headNodeKey: ${JSON.stringify(headNodeKey, null, 2)}`)
-        this.mesh = new MapNodeMesh(this)
-        await this.mesh.load(possibleEpochs)
-        // this.loaded = true
-        console.log(JSON.stringify(this.mesh.data.kmlBoundingBox, null, 2))
+    async loadNodeMeta() {
+        this.nodeMeta = await this.planetoid.getNodeMeta(this.path)
     }
 
-    // async loadMesh(force = false) {
-    //     if (!this.mesh || force) {
-    //         this.mesh = new MapNodeMesh(this.path)
-    //         await this.mesh.load()
-    //     }
-    //     return this.mesh
-    // }
+    async load3dModel(force = false) {
+        if (!this.nodeMeta)
+            await this.loadNodeMeta()
+        if (!this.mesh || force) {
+            this.mesh = new MapNode3dModel(this.planetoid, this.nodeMeta)
+            await this.mesh.load()
+        }
+        return this.mesh
+    }
 
     getBox() {
         const unitSize = this.getUnitSize()
@@ -225,42 +201,6 @@ export class MapNode {
                 return newChunk
             currentsChunks = newChunk.getSubChunks()
         }
-
-        // let currentChunk = new Chunk()
-
-        // const box = new Box2(new Vector2(-180, -180), new Vector2(180, 180))
-        // let id = '0'
-
-        // for (let i = 0; i < level; i++) {
-        //     const center = new Vector2()
-        //     box.getCenter(center)
-        //     if (lat < center.y) {
-        //         if (long < center.x) {
-        //             id += '0'
-        //             box.max.x = center.x
-        //             box.max.y = center.y
-        //         }
-        //         else {
-        //             id += '1'
-        //             box.min.x = center.x
-        //             box.max.y = center.y
-        //         }
-        //     }
-        //     else {
-        //         if (long < center.x) {
-        //             id += '2'
-        //             box.max.x = center.x
-        //             box.min.y = center.y
-        //         }
-        //         else {
-        //             id += '3'
-        //             box.min.x = center.x
-        //             box.min.y = center.y
-        //         }
-        //     }
-        // }
-
-        // return new Chunk({ box })
     }
 
     static preparePath(path: string) {

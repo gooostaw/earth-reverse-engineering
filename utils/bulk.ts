@@ -1,5 +1,5 @@
 import protobuf from 'protobufjs'
-import { Planetoid } from './planetoid'
+import { Planetoid, NodeMeta as NodeMeta } from './planetoid'
 import { MapNode } from './map-node'
 
 //@ts-ignore
@@ -12,7 +12,7 @@ export class Bulk {
     planetoid: Planetoid
     path: string
     data: any
-    // index: number
+    nodesInfo: { [key: string]: NodeMeta } = {}
 
     constructor(planetoid: Planetoid, path: string) {
         this.planetoid = planetoid
@@ -20,50 +20,44 @@ export class Bulk {
     }
 
     async load() {
+        if (this.loaded)
+            return
         const response = await fetch(`${this.planetoid.url}BulkMetadata/pb=!1m2!1s${this.path}!2u${this.planetoid.epoch}`)
         const buffer = new Uint8Array(await response.arrayBuffer())
-        this.data = bulkMetadataType.decode(buffer) as any
-        // this.index = this.getIndexByPath(this.path)
-        this.loaded = true
-    }
+        const data = bulkMetadataType.decode(buffer) as any
+        this.data = data
 
-    // getIndexByPath(path: string): number {
-    //     let c = -1
-    //     for (let e = path, f = (e.length - 1) - ((e.length - 1) % 4); f < e.length; ++f)
-    //         c = this.data.childIndices[8 * (c + 1) + (e.charCodeAt(f) - 48)]
-    //     return c
-    // }
+        const defaultEpoch = data.headNodeKey.epoch
+        const defaultImgEpoch = data.defaultImageryEpoch
+        const defaultTexFormat = data.defaultAvailableTextureFormats
 
-    // hasBulkMetadataAtIndex(index: number) {
-    //     return !!(this.data.flags[index] & 4)
-    // }
+        for (const nodeMeta of data.nodeMetadata) {
+            let temp = nodeMeta.pathAndFlags
 
-    // hasNodeAtIndex(index: number) {
-    //     return !(this.data.flags[index] & 8);
-    // }
+            //decode level
+            const level = temp & 0b11
+            temp >>= 2
 
-    static prepareBulkPath(nodePath: string = '') {
-        return nodePath.substring(0, Math.floor(nodePath.length / 4) * 4)
-    }
+            //decode path
+            let path = this.path //set base path
 
-    getPossibleEpochs(): number[] {
-        const epochs = []
+            for (let i = 0; i <= level; i++) {
+                path += (temp & 0b111) //decode in bulk path digits
+                temp >>= 3
+            }
 
-        if (this.data && this.data.nodeMetadata) {
-            const nodeMetadata = this.data.nodeMetadata
-            for (const metaData of nodeMetadata) {
-                const epoch = metaData.epoch
-                if (epoch && !epochs.includes(epoch))
-                    epochs.push(epoch)
+            this.nodesInfo[path] = {
+                path,
+                epoch: nodeMeta.epoch || defaultEpoch,
+                imgEpoch: nodeMeta.imageryEpoch || defaultImgEpoch,
+                texFormat: nodeMeta.availableTextureFormats || defaultTexFormat
             }
         }
 
-        return epochs
+        this.loaded = true
     }
 
-    static async fromMapNode(mapNode: MapNode) {
-        const bulk = new Bulk(mapNode.planetoid, mapNode.path)
-        await bulk.load()
-        return bulk
+    static prepareBulkPath(nodePath: string = '') {
+        return nodePath.substring(0, Math.floor(nodePath.length / 4) * 4)
     }
 }
